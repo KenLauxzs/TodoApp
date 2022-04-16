@@ -1,0 +1,31 @@
+<ion-header>
+    <ion-toolbar color="danger">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="home"></ion-back-button>
+      </ion-buttons>
+      <ion-title>
+          Add Task
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+<ion-content>
+
+    <ion-item>
+        <ion-label>Title</ion-label>
+        <ion-input type="text" [(ngModel)]="title" ></ion-input>
+    </ion-item>
+    <ion-item>
+        <ion-label>Description</ion-label>
+        <ion-textarea [(ngModel)]="description"></ion-textarea>
+    </ion-item>
+        <ion-item>
+            <ion-label>Start Time</ion-label>
+            <ion-datetime displayFormat="MMM DD, YYYY HH:mm" pickerFormat="h mm A" [(ngModel)]="dateTime" ></ion-datetime>
+    </ion-item>
+    <ion-button expand="block" color="success" (click)="addTask()" class="ion-margin">
+    <ion-icon name="save" slot="start"></ion-icon>
+     Save
+    </ion-button>
+
+
+</ion-content>

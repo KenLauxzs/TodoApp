@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
-import { AlertController, ToastController } from '@ionic/angular';
-
+import { Component, Input } from '@angular/core';
+import { Router } from '@angular/router';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { FirebaseService, List } from '../firebase.service';
 
 @Component({
   selector: 'app-home',
@@ -8,12 +9,14 @@ import { AlertController, ToastController } from '@ionic/angular';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
-  contactlist  = [
-    {id: 1, name: 'Test 1', email: 'Test1@gmail.com', number: '09153557313'},
-    {id: 2, name: 'Test 2', email: 'Test2@gmail.com', number: '09153557314'},
-    {id: 3, name: 'Test 3', email: 'Test3@gmail.com', number: '09153557315'},
-  ]
-  constructor(public alertController: AlertController, public toastController: ToastController) {
+  @Input() id: string;
+  list: List[] = [];
+  
+  constructor(public alertController: AlertController, public toastController: ToastController, private firebase: FirebaseService, private modalCtrl: ModalController, private router: Router ) {
+    this.firebase.getList().subscribe( res => {
+      console.log(res);
+      this.list = res;
+    })
   }
   async confirmation(index: number) {
     const alert = await this.alertController.create({
@@ -24,7 +27,7 @@ export class HomePage {
           role: 'destructive',
           handler: () => {
 
-              this.contactlist.splice(index, 1);
+             
           }
         },
         {
@@ -41,19 +44,27 @@ export class HomePage {
   }
   async addUser() {
     let prompt = await this.alertController.create({
-      header: 'Add Contact',
-      message: "",
+      header: 'Add',
       inputs: [
         {
           name: 'name',
-          placeholder: 'Name',
-        },{
-          name: 'email',
-          placeholder: '@gmail  <optional>',
+          placeholder: 'Title',
+          type: 'text'
         },
         {
-          name: 'number',
-          placeholder: 'Phone number'
+          name : 'text',
+          placeholder: 'Description',
+          type: 'textarea'
+        },
+        {
+          name: 'date',
+          placeholder: 'date',
+          type: 'date',
+        },
+        {
+          name: 'time',
+          placeholder: 'time',
+          type: 'time',
         }
       ],
       buttons: [
@@ -65,33 +76,24 @@ export class HomePage {
         },
         {
           text: 'Save',
-          handler: (data) => {
+          handler: res => {
             console.log('Saved clicked');
             var nameLetter = /^[A-Za-z]+$/;
+            var datetime = (res.date + '  ' + res.time);
+            
 
-            if((data.name != null) && (data.number.length > 0)){
-              if(data.name.length > 15){
-              this.showErrorToast('<ion-text color="danger"><b>Name should be greater than 15 letters</b></ion-text>');
-              return false;
-              }
-              else if(data.number.length != 11){
-              this.showErrorToast('<ion-text color="danger"><b>Number should be 11 numbers only</b></ion-text>');
-              return false;
-              }
-              else if(!data.name.match(nameLetter)){
+            if((res.name != null)){
+               if(!res.name.match(nameLetter)){
               this.showErrorToast('<ion-text color="danger"><b>Name should be aphabet only</b></ion-text>');
               return false;
               }
               else{
-                if(data.email.length == 0){
-                  data.email = "none"
-                }
-                this.contactlist.push({
-                  id: data.id,
-                  name: data.name,
-                  email: data.email,
-                  number: data.number
-                });
+              
+               this.firebase.addList({
+              name: res.name,
+              text: res.text,
+              date: datetime
+              });
             
               this.showErrorToast('<ion-text color="danger"><b>Added</b></ion-text>');
             }
@@ -118,4 +120,33 @@ export class HomePage {
     (await toast).present();
   }
 
+  
+
+    async deleteList(todolist){
+      const alert = await this.alertController.create({
+        header: 'Are you sure you want to delete?',
+        buttons: [
+          {
+            text: 'Delete',
+            role: 'destructive',
+            handler: () => {
+              this.firebase.deleteList(todolist);
+              console.log('deleted')
+              this.showErrorToast('<ion-text color="danger"><b>Deleted</b></ion-text>');
+            }
+          },
+          {
+            text: 'Cancel',
+            role: 'cancel', 
+          }
+        ],
+      });
+  
+      await alert.present();
+     
+    }
+   
+
+     
 }
+
